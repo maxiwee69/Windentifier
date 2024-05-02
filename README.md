@@ -18,7 +18,6 @@ Windentifier is a tool for retrieving various Windows identifiers and IDs. It ca
 
 To install this project, you can clone the repository using the following command:
 
-You need to this in a visual studio developer console btw
 ```bash
 git clone https://github.com/maxiwee69/Windentifier
 
