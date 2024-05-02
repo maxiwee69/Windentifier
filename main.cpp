@@ -6,9 +6,17 @@
 #include <iomanip>
 #include <comdef.h>
 #include <Wbemidl.h>
+#include <Lmcons.h>
 
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "iphlpapi.lib")
+
+void GetUsername() {
+    char username[UNLEN + 1];
+    DWORD username_len = UNLEN + 1;
+    GetUserName(username, &username_len);
+    std::cout << "Username: " << username << "\n";
+}
 
 void GetMotherboardSerialNumber() {
     HRESULT hres;
@@ -168,9 +176,38 @@ void GetWindowsProductId() {
     RegCloseKey(hKey);
 }
 
+void GetRouterMacAddress() {
+    PMIB_IPFORWARDTABLE pIpForwardTable = new MIB_IPFORWARDTABLE;
+    DWORD dwSize = 0;
+    if (GetIpForwardTable(pIpForwardTable, &dwSize, 0) == ERROR_INSUFFICIENT_BUFFER) {
+        delete pIpForwardTable;
+        pIpForwardTable = (PMIB_IPFORWARDTABLE)new BYTE[dwSize];
+    }
+    if (GetIpForwardTable(pIpForwardTable, &dwSize, 0) == NO_ERROR) {
+        for (DWORD i = 0; i < pIpForwardTable->dwNumEntries; i++) {
+            if (pIpForwardTable->table[i].dwForwardDest == 0) { 
+                IPAddr DestIp = pIpForwardTable->table[i].dwForwardNextHop; 
+                ULONG MacAddr[2];
+                ULONG PhysAddrLen = 6; 
+                SendARP(DestIp, 0, MacAddr, &PhysAddrLen);
+                BYTE* bMacAddr = (BYTE*)&MacAddr;
+                std::cout << "Router's MAC Address: ";
+                for (int j = 0; j < (int)PhysAddrLen; j++) {
+                    std::cout << std::hex << std::setw(2) << std::setfill('0') << (int)bMacAddr[j];
+                    if (j != (int)PhysAddrLen - 1) std::cout << "-";
+                }
+                std::cout << "\n";
+                break;
+            }
+        }
+    }
+    delete pIpForwardTable;
+}
 
 int main() {
+    GetRouterMacAddress();
     GetWindowsProductId();
+    GetUsername();
     GetMotherboardSerialNumber();
     GetPhysicalMacAddress();
     GetVolumeSerialNumbers();
