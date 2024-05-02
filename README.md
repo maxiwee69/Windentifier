@@ -28,7 +28,7 @@ git clone https://github.com/maxiwee69/Windentifier
 cd Windentifier
 ```
 ```bash
-cl /EHsc -o windentifier.exe main.cpp Ole32.lib wbemuuid.lib Advapi32.lib
+cl /O1 /MD /EHsc main.cpp Ole32.lib wbemuuid.lib Advapi32.lib Slc.lib /link /OPT:REF /OPT:ICF /OUT:windentifier.exe 
 ```
 
 
