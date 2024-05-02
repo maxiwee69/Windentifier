@@ -95,6 +95,84 @@ void GetMotherboardSerialNumber() {
     CoUninitialize();
 }
 
+void GetSystemUUID() {
+    HRESULT hres;
+
+    hres = CoInitializeEx(0, COINIT_MULTITHREADED);
+    if (FAILED(hres)) {
+        std::cerr << "Failed to initialize COM library\n";
+        return;
+    }
+
+    hres = CoInitializeSecurity(NULL, -1, NULL, NULL, RPC_C_AUTHN_LEVEL_DEFAULT, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE, NULL);
+    if (FAILED(hres)) {
+        std::cerr << "Failed to initialize security\n";
+        CoUninitialize();
+        return;
+    }
+
+    IWbemLocator *pLoc = NULL;
+
+    hres = CoCreateInstance(CLSID_WbemLocator, 0, CLSCTX_INPROC_SERVER, IID_IWbemLocator, (LPVOID *)&pLoc);
+    if (FAILED(hres)) {
+        std::cerr << "Failed to create IWbemLocator object\n";
+        CoUninitialize();
+        return;
+    }
+
+    IWbemServices *pSvc = NULL;
+
+    hres = pLoc->ConnectServer(_bstr_t(L"ROOT\\CIMV2"), NULL, NULL, 0, NULL, 0, 0, &pSvc);
+    if (FAILED(hres)) {
+        std::cerr << "Could not connect\n";
+        pLoc->Release();
+        CoUninitialize();
+        return;
+    }
+
+    hres = CoSetProxyBlanket(pSvc, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE);
+    if (FAILED(hres)) {
+        std::cerr << "Could not set proxy blanket\n";
+        pSvc->Release();
+        pLoc->Release();
+        CoUninitialize();
+        return;
+    }
+
+    IEnumWbemClassObject* pEnumerator = NULL;
+    hres = pSvc->ExecQuery(bstr_t("WQL"), bstr_t("SELECT * FROM Win32_ComputerSystemProduct"), WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY, NULL, &pEnumerator);
+    if (FAILED(hres)) {
+        std::cerr << "Query for system information failed\n";
+        pSvc->Release();
+        pLoc->Release();
+        CoUninitialize();
+        return;
+    }
+
+    // Enumerate the results
+    IWbemClassObject *pclsObj = NULL;
+    ULONG uReturn = 0;
+    while (pEnumerator) {
+        HRESULT hr = pEnumerator->Next(WBEM_INFINITE, 1, &pclsObj, &uReturn);
+        if (!uReturn) {
+            break;
+        }
+
+        // Get the UUID property
+        VARIANT vtProp;
+        hr = pclsObj->Get(L"UUID", 0, &vtProp, 0, 0);
+        std::wcout << "System UUID: " << vtProp.bstrVal << "\n";
+        VariantClear(&vtProp);
+        pclsObj->Release();
+    }
+
+    pSvc->Release();
+    pEnumerator->Release();
+    pLoc->Release();
+
+    CoUninitialize();
+}
+
 void GetPhysicalMacAddress() {
     IP_ADAPTER_INFO AdapterInfo[16];
     DWORD dwBufLen = sizeof(AdapterInfo);
@@ -208,6 +286,7 @@ int main() {
     GetRouterMacAddress();
     GetWindowsProductId();
     GetUsername();
+    GetSystemUUID();
     GetMotherboardSerialNumber();
     GetPhysicalMacAddress();
     GetVolumeSerialNumbers();
