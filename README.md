@@ -14,6 +14,7 @@ Windentifier is a tool for retrieving various Windows identifiers and IDs. It ca
 - Retrieve Machine GUID
 - Retrieve The Routers Mac Address
 - Retrieve Windows Username
+- Retrieve SystemUUID
 
 
 ## Installation
