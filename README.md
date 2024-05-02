@@ -20,13 +20,15 @@ Windentifier is a tool for retrieving various Windows identifiers and IDs. It ca
 
 To install this project, you can clone the repository using the following command:
 
+##### Clone it
 ```bash
 git clone https://github.com/maxiwee69/Windentifier
-
 ```
+##### CD into it
 ```bash
 cd Windentifier
 ```
+##### Compile it
 ```bash
 cl /O1 /MD /EHsc main.cpp Ole32.lib wbemuuid.lib Advapi32.lib Slc.lib /link /OPT:REF /OPT:ICF /OUT:windentifier.exe 
 ```
