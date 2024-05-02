@@ -286,7 +286,6 @@ int main() {
     GetRouterMacAddress();
     GetWindowsProductId();
     GetUsername();
-    GetSystemUUID();
     GetMotherboardSerialNumber();
     GetPhysicalMacAddress();
     GetVolumeSerialNumbers();
