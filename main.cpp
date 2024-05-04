@@ -95,6 +95,16 @@ void GetMotherboardSerialNumber() {
     CoUninitialize();
 }
 
+void GetProcessorId() {
+    int cpuinfo[4] = { 0, 0, 0, 0 };
+    __cpuid(cpuinfo, 1);
+    std::cout << "ProcessorId: ";
+    for (int i = 0; i < 3; i++) {
+        std::cout << std::hex << std::setw(8) << std::setfill('0') << cpuinfo[i];
+    }
+    std::cout << "\n";
+}
+
 void GetSystemUUID() {
     HRESULT hres;
 
@@ -284,6 +294,7 @@ void GetRouterMacAddress() {
 
 int main() {
     GetRouterMacAddress();
+    GetProcessorId();
     GetWindowsProductId();
     GetUsername();
     GetMotherboardSerialNumber();
