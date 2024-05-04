@@ -16,7 +16,7 @@ Windentifier is a tool for retrieving various Windows identifiers and IDs. It ca
 - Retrieve Windows Username
 - Retrieve SystemUUID
 - Retrieve CPUID
-- Retrieve hexadecimal representation of the binary data stored in the EkPub
+- Retrieve hexadecimal representation of the binary data stored in the EkPub(the only thing admin rights are needed for)
 
 
 ## Installation
