@@ -7,6 +7,10 @@
 #include <comdef.h>
 #include <Wbemidl.h>
 #include <Lmcons.h>
+#include <vector>
+/*
+#include <fstream>
+*/
 
 #pragma comment(lib, "wbemuuid.lib")
 #pragma comment(lib, "iphlpapi.lib")
@@ -292,6 +296,59 @@ void GetRouterMacAddress() {
     delete pIpForwardTable;
 }
 
+void GetEKPub() {
+    HKEY hKey;
+    if (RegOpenKeyEx(HKEY_LOCAL_MACHINE, "SYSTEM\\CurrentControlSet\\Services\\TPM\\WMI\\Endorsement", 0, KEY_READ, &hKey) != ERROR_SUCCESS) {
+        std::cerr << "Failed to open registry key. You need to run this as admin otherwise getting tpm ek wont work\n";
+        return;
+    }
+
+    DWORD dwType, dwSize;
+    if (RegQueryValueEx(hKey, "EkPub", NULL, &dwType, NULL, &dwSize) != ERROR_SUCCESS) {
+        std::cerr << "Failed to query registry value.\n";
+        RegCloseKey(hKey);
+        return;
+    }
+
+    std::vector<BYTE> value(dwSize);
+    if (RegQueryValueEx(hKey, "EkPub", NULL, NULL, &value[0], &dwSize) != ERROR_SUCCESS) {
+        std::cerr << "Failed to read registry value.\n";
+        RegCloseKey(hKey);
+        return;
+    }
+
+    RegCloseKey(hKey);
+    std::cout << "hexadecimal representation of the binary data stored in the EkPub: ";
+    for (const auto& byte : value) {
+        std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<unsigned>(byte);
+    }
+    std::cout << "\n";
+}
+
+// i was to lazy to make this actually work bc i wouldve had to change all my functions to return a string and currently they are void 
+// and i am too lazy to change that so i just commented it out so you could do it if you wanted to
+
+/*
+void SaveIDsToFile() {
+    std::ofstream file("ids.txt");
+    if (!file) {
+        std::cerr << "Failed to open file for writing.\n";
+        return;
+    }
+
+    file << "Router MAC Address: " << GetRouterMacAddress() << "\n";
+    file << "Processor ID: " << GetProcessorId() << "\n";
+    file << "Windows Product ID: " << GetWindowsProductId() << "\n";
+    file << "Username: " << GetUsername() << "\n";
+    file << "Motherboard Serial Number: " << GetMotherboardSerialNumber() << "\n";
+    file << "Physical MAC Address: " << GetPhysicalMacAddress() << "\n";
+    file << "Volume Serial Numbers: " << GetVolumeSerialNumbers() << "\n";
+    file << "Machine GUID: " << GetMachineGuid() << "\n";
+    file << "EKPub: " << GetEKPub() << "\n";
+
+    file.close();
+}
+*/
 int main() {
     GetRouterMacAddress();
     GetProcessorId();
@@ -301,6 +358,8 @@ int main() {
     GetPhysicalMacAddress();
     GetVolumeSerialNumbers();
     GetMachineGuid();
+    GetEKPub();
+    // SaveIDsToFile();
     std::cin.get();
     return 0;
 }
